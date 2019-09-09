@@ -1,0 +1,23 @@
+{
+  "name": "jakob-lyon-discord-bots",
+  "version": "1.0.0",
+  "description": "A place for my Discord bots",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JakobLyon/discord-bots.git"
+  },
+  "author": "Jakob Lyon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JakobLyon/discord-bots/issues"
+  },
+  "dependencies": {
+    "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
+    "moment": "^2.24.0",
+    "winston": "^3.2.1"
+  }
+}

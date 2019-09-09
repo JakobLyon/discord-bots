@@ -1,0 +1,19 @@
+# Don't track content of these folders
+node_modules/
+
+auth.json
+*.log
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
