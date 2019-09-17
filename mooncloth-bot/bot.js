@@ -1,14 +1,7 @@
 var Discord = require("discord.io");
 var logger = require("winston");
 var auth = require("./auth.json");
-var moment = require("moment");
-var _ = require("lodash");
-const { createGUID } = require("../custom-utils");
 const {
-  MOONCLOTH_CD_DAYS,
-  EARLY_CD_REMINDER_DAYS,
-  POST_CD_REMINDER_HOURS,
-  NO_COOLDOWN_USAGE,
   NOT_A_RECOGNIZED_COMMAND
 } = require("./constants");
 
@@ -54,11 +47,12 @@ bot.on("message", function(user, userID, channelID, message, evt) {
   // Our bot needs to know if it will execute a command
   // It will listen for messages that will start with `!`
   if (message.substring(0, 1) == "!") {
-    const cmd = message.substring(1);
+    const options = message.substring(1).split(" ");
+    const cmd = options.shift();
 
     // generated from readDirFiles
     if (Object.keys(commands).includes(cmd)) {
-      commands[cmd](bot, user, userID, channelID);
+      commands[cmd](bot, user, userID, channelID, options);
     } else {
       bot.sendMessage({
         to: channelID,
