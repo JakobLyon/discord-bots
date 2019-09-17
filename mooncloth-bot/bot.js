@@ -5,22 +5,23 @@ const {
   NOT_A_RECOGNIZED_COMMAND
 } = require("./constants");
 
-const { createLogger, format, transports } = require("winston");
-
 const readDirFiles = require("read-dir-files");
 
-let commands = [];
+let commands = {};
 
 readDirFiles.list("commands", function(err, filenames) {
   if (err) return console.dir(err);
-  commands = filenames
-    .splice(1, filenames.length)
-    .map(filename => filename.split("\\")[1])
-    .map(filename => filename.split(".")[0])
+  const trimmedFilenames = filenames
+  .splice(1, filenames.length)
+  .map(filename => filename.split("\\")[1])
+  .map(filename => filename.split(".")[0]);
+  commands = trimmedFilenames
     .reduce((acc, cur) => {
+      const { command, help } = require(`./commands/${cur}`);
       return {
         ...acc,
-        [cur]: require(`./commands/${cur}`)
+        [cur]: command,
+        [`${cur}Help`]: help
       };
     }, {});
 });
@@ -51,7 +52,16 @@ bot.on("message", function(user, userID, channelID, message, evt) {
     const cmd = options.shift();
 
     // generated from readDirFiles
-    if (Object.keys(commands).includes(cmd)) {
+    if (Object.keys(commands).includes(cmd) && options[0] === "help") {
+      try {
+        commands[`${cmd}Help`](bot, user, userID, channelID, options);
+      } catch {
+        bot.sendMessage({
+          to: channelID,
+          message: "No help for you."
+        });
+      }
+    } else if (Object.keys(commands).includes(cmd)) {
       commands[cmd](bot, user, userID, channelID, options);
     } else {
       bot.sendMessage({

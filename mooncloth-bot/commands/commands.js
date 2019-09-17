@@ -11,7 +11,7 @@ readDirFiles.list("commands", function(err, filenames) {
     .join(", ");
 });
 
-module.exports = (bot, user, userID, channelID) => {
+exports.command = (bot, user, userID, channelID) => {
   bot.sendMessage({
     to: channelID,
     message: commands

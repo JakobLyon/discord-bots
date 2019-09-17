@@ -42,7 +42,14 @@ const remindmeCancelsLogger = createLogger({
   ]
 });
 
-module.exports = (bot, user, userID, channelID, options) => {
+exports.help = (bot, user, userID, channelID) => {
+  bot.sendMessage({
+    to: channelID,
+    message: "remindme <event-name> <reminder-time>\nremindme <event-name> recurring <start-time> <interval>\n<start-time> : DDHHmm\n<interval> : DDHHmm"
+  });
+};
+
+exports.command = (bot, user, userID, channelID, options) => {
   if (options.length === 1 && options[0] === "cancel") {
     // cancel all reminders for user
     const remindmeSearchOptions = {

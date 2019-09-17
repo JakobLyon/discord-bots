@@ -35,7 +35,7 @@ const eventCancelsLogger = createLogger({
   ]
 });
 
-module.exports = (bot, user, userID, channelID) => {
+exports.command = (bot, user, userID, channelID) => {
   const eventSearchOptions = {
     fields: [
       "userID",

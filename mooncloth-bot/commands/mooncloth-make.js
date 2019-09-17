@@ -59,7 +59,7 @@ const eventCancelsLogger = createLogger({
   ]
 });
 
-module.exports = (bot, user, userID, channelID) => {
+exports.command = (bot, user, userID, channelID) => {
   new Promise((resolve, reject) => {
     const eventSearchOptions = {
       fields: [
