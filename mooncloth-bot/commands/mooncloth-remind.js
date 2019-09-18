@@ -18,7 +18,7 @@ const moonclothLogger = createLogger({
   ]
 });
 
-module.exports = (bot, user, userID, channelID) => {
+exports.command = (bot, user, userID, channelID) => {
   const searchOptions = {
     fields: ["message", "user", "timestamp", "cooldownAvailable"],
     limit: 10,
