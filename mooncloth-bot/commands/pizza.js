@@ -1,6 +1,14 @@
-exports.command = (bot, user, userID, channelID) => {
+const {subscribe} = require("../classes/subscribe");
+
+const commandClass = new subscribe("pizza");
+
+exports.help = (bot, user, userID, channelID) => {
   bot.sendMessage({
     to: channelID,
-    message: "<@87080793452613632>"
-  });
+    message: `${commandClass.help()} Subscribe to this command to join the pizza train.`
+  })
+};
+
+exports.command = (bot, user, userID, channelID) => {
+  commandClass.command(bot, userID, channelID);
 };

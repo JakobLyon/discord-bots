@@ -45,13 +45,15 @@ const remindmeCancelsLogger = createLogger({
 exports.help = (bot, user, userID, channelID) => {
   bot.sendMessage({
     to: channelID,
-    message: "remindme <event-name> <reminder-time>\nremindme <event-name> recurring <start-time> <interval>\n<start-time> : DDHHmm\n<interval> : DDHHmm"
+    message:
+      "remindme <event-name> <reminder-time>\nremindme <event-name> recurring <start-time> <interval>\n<start-time> : DDHHmm\n<interval> : DDHHmm"
   });
 };
 
 exports.command = (bot, user, userID, channelID, options) => {
-  if (options.length === 1 && options[0] === "cancel") {
-    // cancel all reminders for user
+  if (options.length > 0 && options[0] === "cancel") {
+    // cancel reminders for user
+
     const remindmeSearchOptions = {
       fields: [
         "userID",
@@ -65,11 +67,15 @@ exports.command = (bot, user, userID, channelID, options) => {
       from: moment().subtract(10, "days")
     };
     remindmeLogger.query(remindmeSearchOptions, (err, results) => {
+      const reminderName = options[1];
       const toDoEvents = results.file.filter(result => {
-        return (
-          moment(result.reminderTime).format("YYYYMMDDHHmmss") >
-            moment().format("YYYYMMDDHHmmss") && result.userID === userID
-        );
+        if (reminderName) {
+          return (
+            result.userID === userID && result.reminderName === reminderName
+          );
+        } else {
+          return result.userID === userID;
+        }
       });
 
       const remindmeCancelSearchOptions = {
@@ -137,51 +143,97 @@ exports.command = (bot, user, userID, channelID, options) => {
     return;
   }
 
-  // parse options
-  let reminders = [];
-  options.forEach((option, index) => {
-    let reminder = {};
-    if (option === "recurring") {
-      const reminderTime = options[index + 1];
-      const reminderInterval = options[index + 2];
-      const reminderTimeDays = reminderTime.substring(0, 2);
-      const reminderTimeHours = reminderTime.substring(2, 4);
-      const reminderTimeMinutes = reminderTime.substring(4, 6);
-      options.splice(index + 1, 2);
-      reminder = {
-        userID,
-        reminderTime: moment()
-          .add(reminderTimeDays, "days")
-          .add(reminderTimeHours, "hours")
-          .add(reminderTimeMinutes, "minutes"),
-        reminderInterval,
-        id: createGUID(),
-        channelID,
-        type: "recurring",
-        reminderName
-      };
-    } else {
-      const days = option.substring(0, 2);
-      const hours = option.substring(2, 4);
-      const minutes = option.substring(4, 6);
-      reminder = {
-        userID,
-        reminderTime: moment()
-          .add(days, "days")
-          .add(hours, "hours")
-          .add(minutes, "minutes")
-          .format(),
-        id: createGUID(),
-        channelID,
-        reminderName
-      };
-    }
-    reminders.push(reminder);
-  });
+  // check for existing and uncanceled reminders of the same name
+  new Promise((resolve, reject) => {
+    const remindmeSearchOptions = {
+      fields: [
+        "userID",
+        "id",
+        "reminderTime",
+        "channelID",
+        "reminderName",
+        "reminderInterval",
+        "type"
+      ],
+      from: moment().subtract(10, "days")
+    };
 
-  reminders.forEach(reminder => remindmeLogger.info("", reminder));
-  bot.sendMessage({
-    to: channelID,
-    message: `<@${userID}>, your ${reminders.length} reminders have been recorded.`
+    remindmeLogger.query(remindmeSearchOptions, (err, results) => {
+      const toDoEvents = results.file.filter(result => {
+        return result.userID === userID && result.reminderName === reminderName;
+      });
+
+      const remindmeCancelSearchOptions = {
+        fields: ["id"],
+        from: moment().subtract(10, "days")
+      };
+
+      remindmeCancelsLogger.query(
+        remindmeCancelSearchOptions,
+        (err, results) => {
+          const canceledEvents = results.file.map(result => result.id);
+
+          toDoEvents.forEach(event => {
+            if (!canceledEvents.includes(event.id)) {
+              reject({reminderName: event.reminderName, userID: event.userID, channelID: event.channelID});
+            }
+          });
+          resolve(true);
+        }
+      );
+    });
+  }).then(() => {
+    // parse options
+    let reminders = [];
+    options.forEach((option, index) => {
+      let reminder = {};
+      if (option === "recurring") {
+        const reminderTime = options[index + 1];
+        const reminderInterval = options[index + 2];
+        const reminderTimeDays = reminderTime.substring(0, 2);
+        const reminderTimeHours = reminderTime.substring(2, 4);
+        const reminderTimeMinutes = reminderTime.substring(4, 6);
+        options.splice(index + 1, 2);
+        reminder = {
+          userID,
+          reminderTime: moment()
+            .add(reminderTimeDays, "days")
+            .add(reminderTimeHours, "hours")
+            .add(reminderTimeMinutes, "minutes"),
+          reminderInterval,
+          id: createGUID(),
+          channelID,
+          type: "recurring",
+          reminderName
+        };
+      } else {
+        const days = option.substring(0, 2);
+        const hours = option.substring(2, 4);
+        const minutes = option.substring(4, 6);
+        reminder = {
+          userID,
+          reminderTime: moment()
+            .add(days, "days")
+            .add(hours, "hours")
+            .add(minutes, "minutes")
+            .format(),
+          id: createGUID(),
+          channelID,
+          reminderName
+        };
+      }
+      reminders.push(reminder);
+    });
+
+    reminders.forEach(reminder => remindmeLogger.info("", reminder));
+    bot.sendMessage({
+      to: channelID,
+      message: `<@${userID}>, your ${reminders.length} reminders have been recorded.`
+    });
+  }).catch(({reminderName, userID, channelID}) => {
+    bot.sendMessage({
+      to: channelID,
+      message: `<@${userID}>, reminder ${reminderName} already exists!`
+    });
   });
 };
