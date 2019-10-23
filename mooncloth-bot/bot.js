@@ -1,30 +1,24 @@
 var Discord = require("discord.io");
 var logger = require("winston");
 var auth = require("./auth.json");
-const {
-  NOT_A_RECOGNIZED_COMMAND
-} = require("./constants");
+const { NOT_A_RECOGNIZED_COMMAND } = require("./constants");
 
-const readDirFiles = require("read-dir-files");
+const fs = require("fs");
 
 let commands = {};
 
-readDirFiles.list("commands", function(err, filenames) {
-  if (err) return console.dir(err);
-  const trimmedFilenames = filenames
-  .splice(1, filenames.length)
-  .map(filename => filename.split("\\")[1])
+const filenames = fs.readdirSync("commands");
+  
+const trimmedFilenames = filenames
   .map(filename => filename.split(".")[0]);
-  commands = trimmedFilenames
-    .reduce((acc, cur) => {
-      const { command, help } = require(`./commands/${cur}`);
-      return {
-        ...acc,
-        [cur]: command,
-        [`${cur}Help`]: help
-      };
-    }, {});
-});
+commands = trimmedFilenames.reduce((acc, cur) => {
+  const { command, help } = require(`./commands/${cur}`);
+  return {
+    ...acc,
+    [cur]: command,
+    [`${cur}Help`]: help
+  };
+}, {});
 
 // Configure logger settings
 logger.remove(logger.transports.Console);

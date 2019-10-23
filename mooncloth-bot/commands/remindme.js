@@ -1,5 +1,5 @@
 var moment = require("moment");
-const { createGUID } = require("../../custom-utils");
+const { createGUID } = require("../custom-utils");
 const { createLogger, format, transports } = require("winston");
 
 const remindmeLogger = createLogger({

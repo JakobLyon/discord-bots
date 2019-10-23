@@ -1,15 +1,9 @@
-const readDirFiles = require("read-dir-files");
+const fs = require("fs");
 
-let commands = [];
-
-readDirFiles.list("commands", function(err, filenames) {
-  if (err) return console.dir(err);
-  commands = filenames
-    .splice(1, filenames.length)
-    .map(filename => filename.split("\\")[1])
-    .map(filename => filename.split(".")[0])
-    .join(", ");
-});
+const filenames = fs.readdirSync("commands");
+const commands = filenames
+  .map(filename => filename.split(".")[0])
+  .join(", ");
 
 exports.command = (bot, user, userID, channelID) => {
   bot.sendMessage({

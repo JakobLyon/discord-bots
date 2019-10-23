@@ -1,5 +1,5 @@
 var moment = require("moment");
-const { createGUID } = require("../../custom-utils");
+const { createGUID } = require("../custom-utils");
 const {
   MOONCLOTH_CD_DAYS,
   EARLY_CD_REMINDER_DAYS,
